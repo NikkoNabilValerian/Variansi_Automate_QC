@@ -1,0 +1,52 @@
+{
+  "ruleset_name": "Pedoman Survei HMD Matematika FMIPA UI 2026 — Mode B",
+  "version": "1.0",
+  "rules": [
+    {
+      "id": "identitas-nama",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["nama lengkap", "nama responden", "nama"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 1",
+      "message_template": "Field 'Nama' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    },
+    {
+      "id": "identitas-npm",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["npm"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 2",
+      "message_template": "Field 'NPM' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    },
+    {
+      "id": "identitas-prodi",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["program studi", "prodi"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 3",
+      "message_template": "Field 'Program Studi' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    },
+    {
+      "id": "identitas-angkatan",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["angkatan"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 4",
+      "message_template": "Field 'Angkatan' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    },
+    {
+      "id": "pendahuluan-narahubung",
+      "section": "Pendahuluan",
+      "type": "field_presence",
+      "match_keywords": ["narahubung"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Pendahuluan",
+      "message_template": "Teks 'Narahubung' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    }
+  ],
+  "_note_style_check": "Rule bertipe 'style_check' (bold/italic) akan ditambahkan di Fase 4 — belum diimplementasikan di rulesEngine.js versi ini."
+}

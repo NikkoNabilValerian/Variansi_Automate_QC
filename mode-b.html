@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QC Otomatis Survei Google Form — Mode B (Upload Screenshot/PDF)</title>
+<link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/mode-b.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>QC Otomatis Survei Google Form</h1>
+    <div class="subtitle">Mode B — Upload Screenshot/PDF · OCR · Non-AI · Static Site</div>
+  </div>
+  <a href="index.html" class="back-link">← Kembali ke Beranda</a>
+</header>
+
+<main>
+
+  <div class="alert alert-info">
+    ℹ️ <strong>Fase saat ini:</strong> upload, render halaman, OCR (Bahasa Indonesia), dan cek
+    <strong>kelengkapan field</strong> (field_presence). Deteksi bold/italic dan PDF hasil QC
+    beranotasi akan menyusul di fase berikutnya.
+  </div>
+
+  <section class="card">
+    <h2>1. Upload Screenshot atau PDF Form</h2>
+    <p style="font-size:13px; color:var(--muted); margin-top:-8px;">
+      Tidak perlu login. Semua proses (baca file, OCR) berjalan di browser Anda — tidak ada
+      file yang diunggah ke server mana pun. Bisa upload beberapa file sekaligus (multi-halaman).
+      Disarankan resolusi tinggi (≥150dpi) supaya hasil OCR lebih akurat.
+    </p>
+
+    <input type="file" id="fileInputB" accept=".png,.jpg,.jpeg,.webp,.pdf" multiple class="hidden" />
+    <div id="dropZoneB" class="drop-zone">
+      <div class="drop-zone-icon">📤</div>
+      <div>Klik atau drag &amp; drop screenshot/PDF form di sini</div>
+      <div class="drop-zone-hint">Format: PNG, JPG, WEBP, PDF · Maks 15MB per file</div>
+    </div>
+
+    <div id="fileListInfoB"></div>
+
+    <div style="margin-top:16px;">
+      <button id="btnRunB" class="btn-primary" disabled>Jalankan Pemeriksaan</button>
+    </div>
+
+    <div id="progressBoxB" class="progress-box hidden">
+      <span class="spinner"></span>
+      <span id="progressTextB">Memproses...</span>
+    </div>
+
+    <div id="alertBoxB" class="hidden"></div>
+  </section>
+
+  <section id="resultsCardB" class="card hidden">
+    <h2>2. Hasil Pemeriksaan</h2>
+
+    <div id="summaryBarB" class="summary-bar"></div>
+
+    <div id="pagePreviewGridB" class="page-preview-grid"></div>
+
+    <div style="max-height: 420px; overflow-y: auto;">
+      <table class="findings-table">
+        <thead>
+          <tr>
+            <th style="width:32px;">No</th>
+            <th>Item/Section</th>
+            <th>Pedoman yang Dilanggar</th>
+            <th>Temuan</th>
+            <th style="width:110px;">Status</th>
+          </tr>
+        </thead>
+        <tbody id="findingsTableBodyB"></tbody>
+      </table>
+    </div>
+
+    <details class="ocr-preview-details">
+      <summary>Lihat teks mentah hasil OCR (untuk transparansi/debug)</summary>
+      <div id="ocrTextPreviewB" class="ocr-text-preview"></div>
+    </details>
+  </section>
+
+  <section class="card">
+    <h2>Batasan Mode B (Fase Ini)</h2>
+    <p style="font-size:13px; color:var(--muted);">
+      Akurasi bergantung pada kualitas OCR — resolusi rendah/gambar buram bisa membuat field
+      yang sebenarnya ada terbaca sebagai "tidak ditemukan". Sistem sudah punya toleransi typo
+      ringan (fuzzy match), tapi tetap disarankan cek ulang manual dari preview teks OCR di atas.
+      Cek bold/italic, header visual, dan PDF hasil QC beranotasi belum tersedia di fase ini.
+    </p>
+  </section>
+
+</main>
+
+<footer>
+  QC Otomatis Survei Google Form — Mode B · Static site, tanpa backend/server/database.
+</footer>
+
+<!-- pdf.js untuk render PDF ke canvas -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+</script>
+
+<!-- Tesseract.js untuk OCR (client-side, WASM) -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+
+<!-- App modules Mode B (terisolasi dari Mode A) -->
+<script src="js/modeB/configModeB.js"></script>
+<script src="js/modeB/pdfRender.js"></script>
+<script src="js/modeB/ocrEngine.js"></script>
+<script src="js/modeB/rulesEngine.js"></script>
+<script src="js/modeB/main.js"></script>
+
+</body>
+</html>

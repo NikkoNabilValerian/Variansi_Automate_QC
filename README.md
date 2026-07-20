@@ -1,11 +1,18 @@
-# QC Otomatis Survei Google Form — Mode A (Google Forms API)
+# QC Otomatis Survei Google Form
 
-Website QC (quality check) otomatis untuk survei Google Form, **khusus Mode A**: mengambil
-data langsung dari **Google Forms API** (bukan screenshot/OCR), **tanpa AI/LLM sama sekali**
-— murni rule-based dari data terstruktur JSON.
+Website QC (quality check) otomatis untuk survei Google Form, **tanpa AI/LLM sama sekali**
+— murni rule-based / OCR + pengolahan citra klasik. 100% **static site**
+(HTML/CSS/JS + library via CDN), **tidak ada backend/server/database**, di-hosting di
+GitHub Pages.
 
-100% **static site** (HTML/CSS/JS + library via CDN), **tidak ada backend/server/database**,
-cocok di-hosting di GitHub Pages.
+Situs punya **dua mode independen**, dipilih dari halaman utama (`index.html`):
+
+- **Mode A** (`mode-a.html`) — cek via **Google Forms API**. Butuh login, hanya bisa
+  dipakai pemilik/kolaborator form. Akurat 100% untuk kelengkapan field, status wajib-diisi,
+  urutan section, tipe pertanyaan. Tidak bisa cek bold/italic/tampilan visual.
+- **Mode B** (`mode-b.html`) — cek via **upload screenshot/PDF** + OCR (Tesseract.js).
+  Tidak perlu login/akses ke form asli. *(Fase saat ini: upload → render → OCR → cek
+  kelengkapan field. Deteksi bold/italic & PDF beranotasi menyusul di fase berikutnya.)*
 
 Repo: `NikkoNabilValerian/Variansi_Automate_QC`
 Rencana GitHub Pages URL: `https://nikkonabilvalerian.github.io/Variansi_Automate_QC/`
@@ -33,20 +40,35 @@ Untuk kebutuhan cek visual, itu di luar cakupan proyek ini (Mode B — file terp
 ## 2. Struktur Folder
 
 ```
-qc-mode-a/
-├── index.html          # Halaman utama (satu halaman, semua alur di sini)
-├── rules.json           # Definisi rule field_presence & required_check
+(root repo)
+├── index.html            # Landing page — pemilih Mode A / Mode B
+├── mode-a.html            # Halaman Mode A (Forms API) — isi sama seperti index.html versi awal
+├── mode-b.html             # Halaman Mode B (upload screenshot/PDF + OCR)
+├── rules.json               # Rule Mode A: field_presence & required_check
+├── rules-mode-b.json          # Rule Mode B: field_presence (skema sama, terpisah dari Mode A)
 ├── README.md
 ├── css/
-│   └── style.css
+│   ├── style.css              # Style umum, dipakai bersama Mode A & Mode B
+│   ├── landing.css             # Style khusus landing page
+│   └── mode-b.css               # Style khusus Mode B (dropzone, preview halaman, dll)
 └── js/
-    ├── config.js         # ⚠️ ISI CLIENT_ID DI SINI sebelum dijalankan
-    ├── auth.js           # Login Google Identity Services (client-side)
-    ├── formsApi.js        # Ekstrak Form ID + fetch ke forms.googleapis.com
-    ├── checks.js          # Rules engine (field_presence, required_check, section order, scale-grid)
-    ├── pdfReport.js        # Generate PDF (cover + tabel) pakai pdf-lib
-    └── app.js             # Orkestrasi UI
+    ├── config.js                 # ⚠️ ISI CLIENT_ID DI SINI — dipakai Mode A
+    ├── auth.js                    # Login Google Identity Services — Mode A
+    ├── formsApi.js                 # Fetch ke forms.googleapis.com — Mode A
+    ├── checks.js                    # Rules engine Mode A
+    ├── pdfReport.js                  # Generate PDF Mode A (pdf-lib)
+    ├── app.js                         # Orkestrasi UI Mode A
+    └── modeB/                          # Semua kode Mode B, terisolasi dari Mode A
+        ├── configModeB.js                # Konfigurasi Mode B (path rules, bahasa OCR, dll)
+        ├── pdfRender.js                    # Wrapper pdf.js: file → canvas per halaman
+        ├── ocrEngine.js                     # Wrapper Tesseract.js (OCR Bahasa Indonesia)
+        ├── rulesEngine.js                    # Rules engine Mode B (field_presence, fuzzy match)
+        └── main.js                            # Orkestrasi UI Mode B
 ```
+
+Mode A dan Mode B **sepenuhnya terisolasi**: tidak ada file yang di-share kecuali `css/style.css`
+(styling generik: card, button, table, alert). Mengedit salah satu mode tidak akan memengaruhi
+mode lainnya.
 
 ---
 
@@ -130,18 +152,30 @@ Buka `http://localhost:5500` di browser (dan tambahkan origin ini di Google Clou
 
 ## 6. Cara Pakai
 
-1. Buka situs → klik **Login dengan Google** → pilih akun yang punya akses Editor/Viewer
-   ke form yang mau dicek. (Karena app masih status *Testing*, mungkin muncul warning
-   "Google hasn't verified this app" — klik **Advanced → Go to (nama app)** untuk lanjut,
-   ini normal untuk app internal yang belum diverifikasi.)
+Buka situs (`index.html`) → pilih salah satu kartu mode.
+
+### Mode A (`mode-a.html`)
+1. Klik **Login dengan Google** → pilih akun yang punya akses Editor/Viewer ke form yang
+   mau dicek. (Karena app masih status *Testing*, mungkin muncul warning "Google hasn't
+   verified this app" — klik **Advanced → Go to (nama app)** untuk lanjut, ini normal.)
 2. Paste **link editor** Google Form (bentuk `https://docs.google.com/forms/d/<FORM_ID>/edit`)
-   — bukan link publik hasil publish (`/forms/d/e/.../viewform`), karena link publik tidak
-   memuat Form ID asli yang dikenali API.
+   — bukan link publik hasil publish (`/forms/d/e/.../viewform`).
 3. Klik **Cek Form** → sistem fetch struktur form via Forms API, lalu jalankan seluruh rule
    di `rules.json` + cek tambahan (urutan section, tipe pertanyaan skala).
 4. Hasil tampil sebagai tabel temuan di halaman.
-5. Klik **Download PDF Laporan** untuk mengunduh PDF berisi cover ringkasan + tabel temuan
-   (tanpa gambar/anotasi, karena Mode A tidak memproses screenshot sama sekali).
+5. Klik **Download PDF Laporan** untuk mengunduh PDF berisi cover ringkasan + tabel temuan.
+
+### Mode B (`mode-b.html`) — fase saat ini
+1. Tidak perlu login. Upload/drag & drop screenshot (PNG/JPG/WEBP) atau PDF tampilan form
+   (bisa beberapa file/halaman sekaligus).
+2. Klik **Jalankan Pemeriksaan** → sistem merender tiap halaman ke canvas (pdf.js), lalu
+   menjalankan OCR Bahasa Indonesia (Tesseract.js) — semua di browser, tidak ada file yang
+   terkirim ke server mana pun.
+3. Hasil OCR dicek terhadap `rules-mode-b.json` (tipe `field_presence`, dengan toleransi
+   typo ringan/fuzzy match) → tabel temuan tampil di halaman.
+4. Bisa buka panel "Lihat teks mentah hasil OCR" untuk verifikasi manual kualitas pembacaan.
+5. **Belum tersedia di fase ini**: deteksi bold/italic (`style_check`), anotasi kotak merah,
+   dan download PDF hasil QC beranotasi — menyusul di iterasi berikutnya.
 
 ---
 

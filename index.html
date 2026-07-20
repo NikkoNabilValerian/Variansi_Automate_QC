@@ -3,112 +3,74 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>QC Otomatis Survei Google Form — Mode A (Forms API)</title>
+<title>QC Otomatis Survei Google Form</title>
 <link rel="stylesheet" href="css/style.css" />
+<link rel="stylesheet" href="css/landing.css" />
 </head>
 <body>
 
 <header class="topbar">
   <div>
     <h1>QC Otomatis Survei Google Form</h1>
-    <div class="subtitle">Mode A — Google Forms API · Non-AI · Rule-Based · Static Site</div>
+    <div class="subtitle">Non-AI · Rule-Based · Static Site</div>
   </div>
 </header>
 
-<main>
+<main class="landing-main">
 
-  <div id="configWarning" class="alert alert-warning hidden">
-    ⚠️ <strong>CLIENT_ID belum diisi.</strong> Buka <code>js/config.js</code> dan ganti
-    <code>CONFIG.CLIENT_ID</code> dengan Client ID dari Google Cloud Console Anda.
-    Lihat <code>README.md</code> Bagian 3 untuk langkah lengkap.
+  <p class="landing-intro">
+    Pilih mode pemeriksaan sesuai kebutuhan Anda. Kedua mode berjalan sepenuhnya di
+    browser (tidak ada server/database), dan sama-sama murni rule-based tanpa AI/LLM.
+  </p>
+
+  <div class="mode-grid">
+
+    <a href="mode-a.html" class="mode-card">
+      <div class="mode-card-icon">🔗</div>
+      <h2>Mode A — Cek via Link Google Form</h2>
+      <p class="mode-card-desc">
+        Login dengan Google, paste link editor form Anda. Data diambil langsung dari
+        Google Forms API — cek kelengkapan field, status wajib-diisi, urutan section,
+        dan tipe pertanyaan. <strong>Akurat 100%</strong> untuk hal-hal struktural.
+      </p>
+      <ul class="mode-card-points">
+        <li>✅ Butuh login (hanya untuk pemilik/kolaborator form)</li>
+        <li>✅ Tidak bisa cek bold/italic/tampilan visual</li>
+        <li>✅ Hasil: tabel temuan + PDF ringkas</li>
+      </ul>
+      <span class="mode-card-cta">Buka Mode A →</span>
+    </a>
+
+    <a href="mode-b.html" class="mode-card">
+      <div class="mode-card-icon">🖼️</div>
+      <h2>Mode B — Cek via Upload Screenshot/PDF</h2>
+      <p class="mode-card-desc">
+        Upload screenshot atau PDF tampilan form (dari siapa pun, tanpa perlu akses
+        Editor). Sistem membaca teks dengan OCR dan mendeteksi format visual
+        (bold/italic) dengan pengolahan citra klasik — <strong>bukan AI</strong>.
+      </p>
+      <ul class="mode-card-points">
+        <li>✅ Tidak perlu login / akses ke form asli</li>
+        <li>✅ Bisa cek bold/italic (heuristik, best-effort)</li>
+        <li>✅ Hasil: PDF beranotasi kotak merah + catatan</li>
+      </ul>
+      <span class="mode-card-cta">Buka Mode B →</span>
+    </a>
+
   </div>
 
-  <section class="card">
-    <h2>1. Login dengan Google</h2>
-    <p style="font-size:13px; color:var(--muted); margin-top:-8px;">
-      Login diperlukan karena Mode A hanya bisa mengecek form yang Anda punya akses
-      Editor/Viewer-nya (bukan untuk QC form pihak ketiga).
-    </p>
-    <div class="status-row">
-      <span id="statusDot" class="status-dot"></span>
-      <span id="statusText">Belum login.</span>
-    </div>
-    <button id="btnLogin" class="btn-primary">Login dengan Google</button>
-    <button id="btnLogout" class="btn-secondary hidden">Logout</button>
-  </section>
-
-  <section class="card">
-    <h2>2. Paste Link Google Form</h2>
-    <p style="font-size:13px; color:var(--muted); margin-top:-8px;">
-      Gunakan link <strong>editor</strong> form (dari address bar saat Anda membuka form untuk diedit),
-      contoh: <code>https://docs.google.com/forms/d/&lt;FORM_ID&gt;/edit</code>
-    </p>
-    <div class="field-row">
-      <input
-        type="text"
-        id="formLinkInput"
-        placeholder="https://docs.google.com/forms/d/1rbN48Fz.../edit"
-      />
-      <button id="btnCheck" class="btn-primary" disabled>Cek Form</button>
-    </div>
-    <div id="checkAlert" class="hidden"></div>
-  </section>
-
-  <section id="resultsCard" class="card hidden">
-    <h2>3. Hasil Pengecekan</h2>
-    <div id="formMeta"></div>
-    <div id="summaryBar" class="summary-bar"></div>
-
-    <div style="max-height: 420px; overflow-y: auto;">
-      <table class="findings-table">
-        <thead>
-          <tr>
-            <th style="width:32px;">No</th>
-            <th>Item/Section</th>
-            <th>Pedoman yang Dilanggar</th>
-            <th>Temuan</th>
-            <th style="width:110px;">Status</th>
-          </tr>
-        </thead>
-        <tbody id="findingsTableBody"></tbody>
-      </table>
-    </div>
-
-    <div style="margin-top:16px;">
-      <button id="btnDownloadPdf" class="btn-primary">Download PDF Laporan</button>
-    </div>
-  </section>
-
-  <section class="card">
-    <h2>Batasan Mode A</h2>
-    <p style="font-size:13px; color:var(--muted);">
-      Mode A hanya mengecek data <em>struktur & teks</em> dari Google Forms API: kelengkapan field,
-      status wajib-diisi, urutan section, dan tipe pertanyaan. Google Forms API
-      <strong>tidak menyediakan</strong> data bold/italic/warna/tema/header visual, sehingga
-      hal-hal tersebut <strong>tidak</strong> dicek di sini. Untuk cek visual, gunakan Mode B
-      (upload screenshot + OCR) secara terpisah.
-    </p>
-  </section>
+  <div class="landing-note">
+    Belum yakin pilih yang mana? Kalau Anda pemilik form dan cuma butuh cek cepat
+    kelengkapan field, pakai <strong>Mode A</strong>. Kalau Anda mengecek form
+    milik orang lain (tanpa akses login) atau butuh cek tampilan bold/italic,
+    pakai <strong>Mode B</strong>.
+  </div>
 
 </main>
 
 <footer>
-  QC Otomatis Survei Google Form — Mode A · Static site, tanpa backend/server/database.
+  QC Otomatis Survei Google Form · Static site, tanpa backend/server/database.
 </footer>
-
-<!-- Google Identity Services -->
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-
-<!-- pdf-lib untuk generate PDF laporan -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-
-<!-- App modules -->
-<script src="js/config.js"></script>
-<script src="js/auth.js"></script>
-<script src="js/formsApi.js"></script>
-<script src="js/checks.js"></script>
-<script src="js/pdfReport.js"></script>
-<script src="js/app.js"></script>
 
 </body>
 </html>
