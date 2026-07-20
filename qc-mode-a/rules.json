@@ -1,0 +1,90 @@
+{
+  "version": "1.0",
+  "rules": [
+    {
+      "id": "identitas-nama",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["nama lengkap", "nama responden", "nama"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 1",
+      "message_template": "Field 'Nama' tidak ditemukan pada form."
+    },
+    {
+      "id": "identitas-npm",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["npm"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 2",
+      "message_template": "Field 'NPM' tidak ditemukan pada form."
+    },
+    {
+      "id": "identitas-prodi",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["program studi", "prodi"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 3",
+      "message_template": "Field 'Program Studi' tidak ditemukan pada form."
+    },
+    {
+      "id": "identitas-angkatan",
+      "section": "Identitas Responden",
+      "type": "field_presence",
+      "match_keywords": ["angkatan"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 4",
+      "message_template": "Field 'Angkatan' tidak ditemukan pada form."
+    },
+    {
+      "id": "pendahuluan-narahubung",
+      "section": "Pendahuluan",
+      "type": "field_presence",
+      "match_keywords": ["narahubung"],
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Pendahuluan",
+      "message_template": "Teks 'Narahubung' tidak ditemukan pada deskripsi form."
+    },
+    {
+      "id": "identitas-nama-required",
+      "section": "Identitas Responden",
+      "type": "required_check",
+      "match_keywords": ["nama lengkap", "nama responden", "nama"],
+      "expected_required": true,
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 1",
+      "message_template": "Field 'Nama' ada, tapi tidak di-set wajib diisi (Required)."
+    },
+    {
+      "id": "identitas-npm-required",
+      "section": "Identitas Responden",
+      "type": "required_check",
+      "match_keywords": ["npm"],
+      "expected_required": true,
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 2",
+      "message_template": "Field 'NPM' ada, tapi tidak di-set wajib diisi (Required)."
+    },
+    {
+      "id": "identitas-prodi-required",
+      "section": "Identitas Responden",
+      "type": "required_check",
+      "match_keywords": ["program studi", "prodi"],
+      "expected_required": true,
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 3",
+      "message_template": "Field 'Program Studi' ada, tapi tidak di-set wajib diisi (Required)."
+    },
+    {
+      "id": "identitas-angkatan-required",
+      "section": "Identitas Responden",
+      "type": "required_check",
+      "match_keywords": ["angkatan"],
+      "expected_required": true,
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Identitas Responden, poin 4",
+      "message_template": "Field 'Angkatan' ada, tapi tidak di-set wajib diisi (Required)."
+    }
+  ]
+}
