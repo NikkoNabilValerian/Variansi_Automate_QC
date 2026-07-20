@@ -10,9 +10,10 @@ Situs punya **dua mode independen**, dipilih dari halaman utama (`index.html`):
 - **Mode A** (`mode-a.html`) — cek via **Google Forms API**. Butuh login, hanya bisa
   dipakai pemilik/kolaborator form. Akurat 100% untuk kelengkapan field, status wajib-diisi,
   urutan section, tipe pertanyaan. Tidak bisa cek bold/italic/tampilan visual.
-- **Mode B** (`mode-b.html`) — cek via **upload screenshot/PDF** + OCR (Tesseract.js).
-  Tidak perlu login/akses ke form asli. *(Fase saat ini: upload → render → OCR → cek
-  kelengkapan field. Deteksi bold/italic & PDF beranotasi menyusul di fase berikutnya.)*
+- **Mode B** (`mode-b.html`) — cek via **upload screenshot/PDF** + OCR (Tesseract.js) +
+  heuristik citra klasik untuk bold/italic. Tidak perlu login/akses ke form asli. Hasil:
+  layar review (accept/reject temuan) → PDF beranotasi (kotak merah + callout kuning),
+  mirip format QC manual sebelumnya.
 
 Repo: `NikkoNabilValerian/Variansi_Automate_QC`
 Rencana GitHub Pages URL: `https://nikkonabilvalerian.github.io/Variansi_Automate_QC/`
@@ -62,8 +63,11 @@ Untuk kebutuhan cek visual, itu di luar cakupan proyek ini (Mode B — file terp
         ├── configModeB.js                # Konfigurasi Mode B (path rules, bahasa OCR, dll)
         ├── pdfRender.js                    # Wrapper pdf.js: file → canvas per halaman
         ├── ocrEngine.js                     # Wrapper Tesseract.js (OCR Bahasa Indonesia)
-        ├── rulesEngine.js                    # Rules engine Mode B (field_presence, fuzzy match)
-        └── main.js                            # Orkestrasi UI Mode B
+        ├── styleHeuristics.js                # Deteksi bold (ink density/Otsu) & italic (slant/Sobel)
+        ├── rulesEngine.js                     # Rules engine Mode B: field_presence + style_check
+        ├── annotator.js                         # Gambar kotak merah + nomor + callout kuning di canvas
+        ├── pdfBuilderB.js                        # Generate PDF akhir: cover + halaman beranotasi
+        └── main.js                                # Orkestrasi UI Mode B + layar review (accept/reject)
 ```
 
 Mode A dan Mode B **sepenuhnya terisolasi**: tidak ada file yang di-share kecuali `css/style.css`
@@ -165,17 +169,25 @@ Buka situs (`index.html`) → pilih salah satu kartu mode.
 4. Hasil tampil sebagai tabel temuan di halaman.
 5. Klik **Download PDF Laporan** untuk mengunduh PDF berisi cover ringkasan + tabel temuan.
 
-### Mode B (`mode-b.html`) — fase saat ini
+### Mode B (`mode-b.html`)
 1. Tidak perlu login. Upload/drag & drop screenshot (PNG/JPG/WEBP) atau PDF tampilan form
    (bisa beberapa file/halaman sekaligus).
-2. Klik **Jalankan Pemeriksaan** → sistem merender tiap halaman ke canvas (pdf.js), lalu
-   menjalankan OCR Bahasa Indonesia (Tesseract.js) — semua di browser, tidak ada file yang
-   terkirim ke server mana pun.
-3. Hasil OCR dicek terhadap `rules-mode-b.json` (tipe `field_presence`, dengan toleransi
-   typo ringan/fuzzy match) → tabel temuan tampil di halaman.
-4. Bisa buka panel "Lihat teks mentah hasil OCR" untuk verifikasi manual kualitas pembacaan.
-5. **Belum tersedia di fase ini**: deteksi bold/italic (`style_check`), anotasi kotak merah,
-   dan download PDF hasil QC beranotasi — menyusul di iterasi berikutnya.
+2. Klik **Jalankan Pemeriksaan** → sistem merender tiap halaman ke canvas (pdf.js), menjalankan
+   OCR Bahasa Indonesia (Tesseract.js), lalu mengecek terhadap `rules-mode-b.json`:
+   - `field_presence` — kelengkapan field (fuzzy match, toleransi typo OCR ringan)
+   - `style_check` — bold judul section (ink density + binarisasi Otsu) & italic deskripsi
+     section (slant angle + Sobel edge detection) — semua pengolahan citra klasik, bukan AI
+3. **Layar Review** — semua temuan tampil dengan checkbox (accept/reject). Temuan
+   dengan keyakinan (confidence) rendah otomatis TIDAK tercentang, supaya user memeriksa
+   manual sebelum masuk PDF final. Ini wajib dilalui — sistem tidak akan membuat PDF final
+   tanpa kesempatan review manusia.
+4. Klik **Generate & Download PDF Hasil QC** → hanya temuan yang **diterima (tercentang)**
+   yang akan dianotasi (kotak merah + lingkaran nomor + callout kuning) pada gambar halaman,
+   digabung dengan cover ringkasan, lalu otomatis terdownload.
+5. Bisa buka panel "Lihat teks mentah hasil OCR" untuk verifikasi manual kualitas pembacaan.
+6. **Belum tersedia**: cek kemiripan header visual/tema (`image_region_check`), edit
+   deskripsi/tambah temuan manual di layar review, dan penilaian kualitas bahasa (ambiguitas
+   kalimat, EYD) — semua di luar cakupan sistem non-AI ini.
 
 ---
 

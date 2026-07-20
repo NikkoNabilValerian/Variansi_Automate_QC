@@ -20,9 +20,10 @@
 <main>
 
   <div class="alert alert-info">
-    ℹ️ <strong>Fase saat ini:</strong> upload, render halaman, OCR (Bahasa Indonesia), dan cek
-    <strong>kelengkapan field</strong> (field_presence). Deteksi bold/italic dan PDF hasil QC
-    beranotasi akan menyusul di fase berikutnya.
+    ℹ️ <strong>Fase saat ini:</strong> upload, render halaman, OCR (Bahasa Indonesia), cek
+    kelengkapan field (<code>field_presence</code>) DAN format bold/italic
+    (<code>style_check</code>, heuristik ink density + slant angle — bukan AI), lalu layar
+    review sebelum PDF beranotasi dibuat.
   </div>
 
   <section class="card">
@@ -55,26 +56,24 @@
   </section>
 
   <section id="resultsCardB" class="card hidden">
-    <h2>2. Hasil Pemeriksaan</h2>
+    <h2>2. Hasil Pemeriksaan &amp; Review Temuan</h2>
+    <p style="font-size:13px; color:var(--muted); margin-top:-8px;">
+      Semua temuan di bawah ini hasil otomatis (OCR + heuristik) — <strong>wajib direview</strong>
+      sebelum PDF final dibuat. Centang = diterima (akan masuk PDF), hilangkan centang untuk
+      menolak temuan yang menurut Anda salah deteksi (false positive). Temuan dengan keyakinan
+      rendah otomatis tidak tercentang, silakan cek manual.
+    </p>
 
     <div id="summaryBarB" class="summary-bar"></div>
 
     <div id="pagePreviewGridB" class="page-preview-grid"></div>
 
-    <div style="max-height: 420px; overflow-y: auto;">
-      <table class="findings-table">
-        <thead>
-          <tr>
-            <th style="width:32px;">No</th>
-            <th>Item/Section</th>
-            <th>Pedoman yang Dilanggar</th>
-            <th>Temuan</th>
-            <th style="width:110px;">Status</th>
-          </tr>
-        </thead>
-        <tbody id="findingsTableBodyB"></tbody>
-      </table>
+    <div id="reviewListB" class="review-list"></div>
+
+    <div style="margin-top:20px;">
+      <button id="btnGeneratePdfB" class="btn-primary">Generate &amp; Download PDF Hasil QC</button>
     </div>
+    <div id="pdfGenAlertB" class="hidden"></div>
 
     <details class="ocr-preview-details">
       <summary>Lihat teks mentah hasil OCR (untuk transparansi/debug)</summary>
@@ -83,12 +82,14 @@
   </section>
 
   <section class="card">
-    <h2>Batasan Mode B (Fase Ini)</h2>
+    <h2>Batasan Mode B</h2>
     <p style="font-size:13px; color:var(--muted);">
-      Akurasi bergantung pada kualitas OCR — resolusi rendah/gambar buram bisa membuat field
-      yang sebenarnya ada terbaca sebagai "tidak ditemukan". Sistem sudah punya toleransi typo
-      ringan (fuzzy match), tapi tetap disarankan cek ulang manual dari preview teks OCR di atas.
-      Cek bold/italic, header visual, dan PDF hasil QC beranotasi belum tersedia di fase ini.
+      Kelengkapan field (<code>field_presence</code>) akurat, murni pencarian teks hasil OCR
+      dengan toleransi typo ringan. Deteksi bold/italic (<code>style_check</code>) bersifat
+      <strong>best-effort</strong> — berbasis ink density (Otsu) &amp; slant angle (Sobel edge),
+      bisa meleset di resolusi rendah/font kecil/gambar buram, karena itu WAJIB direview manual
+      sebelum PDF final dibuat. Cek header visual/tema (<code>image_region_check</code>) dan
+      penilaian bahasa (ambiguitas kalimat, EYD) belum/tidak tercakup di sistem non-AI ini.
     </p>
   </section>
 
@@ -108,11 +109,17 @@
 <!-- Tesseract.js untuk OCR (client-side, WASM) -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
+<!-- pdf-lib untuk generate PDF hasil QC beranotasi -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+
 <!-- App modules Mode B (terisolasi dari Mode A) -->
 <script src="js/modeB/configModeB.js"></script>
 <script src="js/modeB/pdfRender.js"></script>
 <script src="js/modeB/ocrEngine.js"></script>
+<script src="js/modeB/styleHeuristics.js"></script>
 <script src="js/modeB/rulesEngine.js"></script>
+<script src="js/modeB/annotator.js"></script>
+<script src="js/modeB/pdfBuilderB.js"></script>
 <script src="js/modeB/main.js"></script>
 
 </body>

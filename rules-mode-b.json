@@ -46,7 +46,26 @@
       "severity": "wajib",
       "pedoman_ref": "Bag. Pendahuluan",
       "message_template": "Teks 'Narahubung' tidak ditemukan pada hasil pembacaan teks (OCR)."
+    },
+    {
+      "id": "section-title-bold",
+      "type": "style_check",
+      "target": "section_title",
+      "match_keywords": ["parameter penilaian"],
+      "expected_style": "bold",
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Isi, poin 1 (hlm. 8)",
+      "message_template": "Judul section '{text}' tidak bold, padahal WAJIB bold."
+    },
+    {
+      "id": "section-desc-italic",
+      "type": "style_check",
+      "target": "section_description",
+      "match_keywords": ["dalam memberikan penilaian"],
+      "expected_style": "italic",
+      "severity": "wajib",
+      "pedoman_ref": "Bag. Isi, poin 2 (hlm. 8)",
+      "message_template": "Deskripsi section '{text}' tidak italic, padahal WAJIB italic sesuai Pedoman Isi."
     }
-  ],
-  "_note_style_check": "Rule bertipe 'style_check' (bold/italic) akan ditambahkan di Fase 4 — belum diimplementasikan di rulesEngine.js versi ini."
+  ]
 }

@@ -36,7 +36,7 @@ const OcrEngine = (() => {
   /**
    * Jalankan OCR pada satu canvas halaman.
    * @param {HTMLCanvasElement} canvas
-   * @returns {Promise<{text: string, words: Array}>} teks penuh + kata per bounding box
+   * @returns {Promise<{text: string, words: Array, lines: Array}>} teks penuh + kata & baris per bounding box
    */
   async function recognizeCanvas(canvas) {
     if (!worker) {
@@ -50,7 +50,15 @@ const OcrEngine = (() => {
       bbox: w.bbox, // { x0, y0, x1, y1 }
     }));
 
-    return { text: data.text || "", words };
+    // 'lines' dibutuhkan untuk style_check (bold/italic dinilai per baris, bukan per kata,
+    // supaya heuristik ink density/slant lebih stabil).
+    const lines = (data.lines || []).map((l) => ({
+      text: l.text,
+      confidence: l.confidence,
+      bbox: l.bbox,
+    }));
+
+    return { text: data.text || "", words, lines };
   }
 
   /**
