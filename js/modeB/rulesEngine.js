@@ -89,6 +89,16 @@ const RulesEngineB = (() => {
   }
 
   /**
+   * Bersihkan teks OCR dari "sampah" yang sering ikut kebaca dari ikon di sekitar teks
+   * (mis. chevron/titik-tiga menu Google Forms terbaca sebagai karakter aneh di ujung baris).
+   * Heuristik sederhana: potong dari simbol-simbol yang jarang muncul di teks Indonesia normal.
+   */
+  function sanitizeLineText(text) {
+    if (!text) return text;
+    return text.replace(/[\[\]{}^~`|]+.*$/, "").trim();
+  }
+
+  /**
    * Jalankan rule style_check (bold/italic) terhadap tiap baris OCR yang cocok dengan
    * match_keywords rule. Butuh canvas asli tiap halaman untuk crop region & hitung heuristik.
    * @param {Array<{pageIndex:number, canvas:HTMLCanvasElement, lines:Array}>} pagesData
@@ -103,36 +113,36 @@ const RulesEngineB = (() => {
     pagesData.forEach(({ pageIndex, canvas, lines }) => {
       if (!lines || lines.length === 0) return;
 
-      // Baseline density dihitung sekali per halaman dari semua baris (median),
-      // dipakai sebagai pembanding relatif untuk deteksi bold.
-      const allBboxes = lines.map((l) => l.bbox).filter(Boolean);
-      const baselineDensity = StyleHeuristics.computeBaselineDensity(canvas, allBboxes);
-
       styleRules.forEach((rule) => {
         lines.forEach((line) => {
           if (!line.bbox || !line.text) return;
-          const matches = rule.match_keywords.some((k) =>
-            fuzzyContains(line.text, k)
-          );
+          const cleanText = sanitizeLineText(line.text);
+          const matches = rule.match_keywords.some((k) => fuzzyContains(cleanText, k));
           if (!matches) return;
+
+          // Baseline dihitung KHUSUS per baris target: hanya dibandingkan dengan baris lain
+          // yang ukuran fontnya mirip (bukan rata-rata seluruh halaman), supaya judul section
+          // (font besar) tidak dibandingkan tidak adil dengan body text (font kecil, sudah
+          // banyak kata bold sendiri seperti daftar "Skor 0...Skor 6").
+          const baselineDensity = StyleHeuristics.computeBaselineDensityForLine(
+            canvas,
+            lines,
+            line.bbox
+          );
 
           if (rule.expected_style === "bold") {
             const density = StyleHeuristics.computeInkDensity(canvas, line.bbox);
             const actuallyBold = StyleHeuristics.isBold(density, baselineDensity);
-            if (rule.expected_style === "bold" && !actuallyBold) {
+            if (!actuallyBold) {
               const confidence = StyleHeuristics.boldConfidence(density, baselineDensity);
-              findings.push(
-                buildFinding(rule, pageIndex, line.bbox, line.text.trim(), confidence)
-              );
+              findings.push(buildFinding(rule, pageIndex, line.bbox, cleanText, confidence));
             }
           } else if (rule.expected_style === "italic") {
             const angle = StyleHeuristics.computeSlantAngle(canvas, line.bbox);
             const actuallyItalic = StyleHeuristics.isItalic(angle);
             if (!actuallyItalic) {
               const confidence = StyleHeuristics.italicConfidence(angle);
-              findings.push(
-                buildFinding(rule, pageIndex, line.bbox, line.text.trim(), confidence)
-              );
+              findings.push(buildFinding(rule, pageIndex, line.bbox, cleanText, confidence));
             }
           }
         });

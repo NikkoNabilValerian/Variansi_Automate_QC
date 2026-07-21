@@ -6,7 +6,7 @@
 // ============================================================
 
 const StyleHeuristics = (() => {
-  const BOLD_DENSITY_FACTOR = 1.25; // density > baseline * factor => bold
+  const BOLD_DENSITY_FACTOR = 1.15; // density > baseline * factor => bold (dikalibrasi ulang dari 1.25, terlalu ketat di data uji nyata)
   const ITALIC_ANGLE_THRESHOLD_DEG = 8; // |slant| > ini => italic
 
   /** Ambil ImageData dari region bbox pada canvas, dengan sedikit padding. */
@@ -83,6 +83,38 @@ const StyleHeuristics = (() => {
       if (gray[i] < threshold) darkCount++;
     }
     return darkCount / gray.length;
+  }
+
+  /**
+   * Hitung baseline ink density "normal" dari baris-baris REFERENSI yang mirip ukuran
+   * font (tinggi bbox) dengan baris target — supaya perbandingan bold adil (apple-to-apple),
+   * bukan membandingkan judul section (font besar) dengan body text (font kecil) yang
+   * kebetulan sudah banyak kata bold-nya sendiri (mis. daftar "Skor 0...Skor 6").
+   * @param {HTMLCanvasElement} canvas
+   * @param {Array} allLines - semua baris di halaman (punya .bbox, .text)
+   * @param {object} targetBbox - bbox baris yang sedang dinilai (dikecualikan dari baseline)
+   */
+  function computeBaselineDensityForLine(canvas, allLines, targetBbox) {
+    const targetHeight = targetBbox.y1 - targetBbox.y0;
+
+    const candidates = (allLines || [])
+      .map((l) => l.bbox)
+      .filter(Boolean)
+      .filter((b) => {
+        const isSameLine =
+          Math.abs(b.x0 - targetBbox.x0) < 2 && Math.abs(b.y0 - targetBbox.y0) < 2;
+        if (isSameLine) return false; // jangan bandingkan baris dengan dirinya sendiri
+        const h = b.y1 - b.y0;
+        if (h <= 0) return false;
+        const ratio = h / targetHeight;
+        return ratio >= 0.7 && ratio <= 1.4; // toleransi ukuran font mirip (±40%)
+      });
+
+    // Kalau baris dengan ukuran font mirip terlalu sedikit (<3), baseline tidak reliable —
+    // fallback ke seluruh baris halaman supaya tetap ada pembanding, walau kurang ideal.
+    const pool = candidates.length >= 3 ? candidates : (allLines || []).map((l) => l.bbox).filter(Boolean);
+
+    return computeBaselineDensity(canvas, pool);
   }
 
   /**
@@ -219,6 +251,7 @@ const StyleHeuristics = (() => {
   return {
     computeInkDensity,
     computeBaselineDensity,
+    computeBaselineDensityForLine,
     computeSlantAngle,
     isBold,
     isItalic,
